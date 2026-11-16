@@ -66,6 +66,7 @@ It also:
 - copies `vscode/settings.json` and `vscode/keybindings.json` to `%APPDATA%\Code\User\`
 - installs every extension listed in `vscode/extensions.txt`
 - copies `windows/terminal-settings.json` into Windows Terminal (Ottosson color scheme; MesloLGS NF on the Debian profile)
+- restores PowerToys settings from `windows/powertoys/` with `scripts/powertoys.ps1 -Import`: general settings plus each module's settings (FancyZones, Peek, Awake, PowerRename, mouse utilities…). FancyZones' applied layouts are skipped because they're tied to a machine's monitors
 - runs `pip install --user -r windows/requirements.txt` for Python 3.12
 - sets git `core.editor "code --wait"`, `init.defaultBranch main`, and `pull.rebase false`, and asks for `user.name` and `user.email` if they aren't set
 
@@ -133,6 +134,7 @@ cd $HOME\dev-setup
 code --list-extensions | Set-Content vscode\extensions.txt
 Copy-Item $env:APPDATA\Code\User\settings.json, $env:APPDATA\Code\User\keybindings.json vscode\
 Copy-Item "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json" windows\terminal-settings.json
+powershell -ExecutionPolicy Bypass -File scripts\powertoys.ps1 -Export
 git diff        # check that no machine-specific paths, IPs or hostnames crept in
 ```
 
@@ -362,6 +364,8 @@ rm -rf ~/.config/nvim/.git
 scripts/install-windows.ps1   Windows bootstrap: winget apps, fonts, VS Code, Terminal, Python, git
 scripts/install-fonts.ps1     per-user font install (called by install-windows.ps1)
 scripts/install-work.ps1      work extras: JTOpen jar, IBM i Access ODBC + ACS, DBeaver connections
+scripts/powertoys.ps1         save (-Export) / restore (-Import) PowerToys settings
+windows/powertoys/            PowerToys settings (per-module JSON)
 work/dbeaver/                 DBeaver connection template (placeholder hosts)
 scripts/install.sh            Debian WSL bootstrap
 vscode/settings.json          VS Code user settings (machine-specific entries removed)

@@ -149,6 +149,12 @@ if (-not $SkipConfig) {
     }
 }
 
+# --- PowerToys ---------------------------------------------------------------
+if (-not $SkipConfig) {
+    Step 'PowerToys settings'
+    & (Join-Path $PSScriptRoot 'powertoys.ps1') -Import
+}
+
 # --- Python ------------------------------------------------------------------
 Step 'Python packages (user)'
 if (Get-Command py -ErrorAction SilentlyContinue) {
