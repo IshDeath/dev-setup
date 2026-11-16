@@ -1,0 +1,5 @@
+*.bak.*
+.zshrc.local
+id_*
+*.pem
+*.ppk
