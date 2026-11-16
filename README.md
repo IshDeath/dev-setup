@@ -70,9 +70,10 @@ It also:
 - runs `pip install --user -r windows/requirements.txt` for Python 3.12
 - sets git `core.editor "code --wait"`, `init.defaultBranch main`, and `pull.rebase false`, and asks for `user.name` and `user.email` if they aren't set
 
+- installs **Sysmon** with the [SwiftOnSecurity config](windows/sysmon/README.md) (`scripts/install-sysmon.ps1`, UAC prompt). If Sysmon is already installed, it updates the config in place
 - clones the private repos `IshDeath/claude-config` and `IshDeath/maddenco-docs` into `$HOME` and runs `claude-config\install.ps1` (see [Claude Code config](#claude-code-config))
 
-Flags: `-Work`, `-SkipApps` (config only), `-SkipConfig` (don't touch VS Code or Terminal settings), `-SkipClaudeConfig`.
+Flags: `-Work`, `-SkipApps` (config only), `-SkipConfig` (don't touch VS Code or Terminal settings), `-SkipClaudeConfig`, `-SkipSysmon`.
 
 ### Claude Code config
 
@@ -365,6 +366,8 @@ scripts/install-windows.ps1   Windows bootstrap: winget apps, fonts, VS Code, Te
 scripts/install-fonts.ps1     per-user font install (called by install-windows.ps1)
 scripts/install-work.ps1      work extras: JTOpen jar, IBM i Access ODBC + ACS, DBeaver connections
 scripts/powertoys.ps1         save (-Export) / restore (-Import) PowerToys settings
+scripts/install-sysmon.ps1    install Sysmon / update its config (self-elevates)
+windows/sysmon/               SwiftOnSecurity sysmon-config (CC BY 4.0)
 windows/powertoys/            PowerToys settings (per-module JSON)
 work/dbeaver/                 DBeaver connection template (placeholder hosts)
 scripts/install.sh            Debian WSL bootstrap

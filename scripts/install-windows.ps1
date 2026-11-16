@@ -24,12 +24,16 @@
 
 .PARAMETER SkipClaudeConfig
   Skip cloning the private claude-config + maddenco-docs repos and installing the Claude Code config.
+
+.PARAMETER SkipSysmon
+  Skip installing Sysmon (SwiftOnSecurity config). It asks for admin (UAC) when it runs.
 #>
 param(
     [switch]$Work,
     [switch]$SkipApps,
     [switch]$SkipConfig,
-    [switch]$SkipClaudeConfig
+    [switch]$SkipClaudeConfig,
+    [switch]$SkipSysmon
 )
 
 $ErrorActionPreference = 'Stop'
@@ -153,6 +157,13 @@ if (-not $SkipConfig) {
 if (-not $SkipConfig) {
     Step 'PowerToys settings'
     & (Join-Path $PSScriptRoot 'powertoys.ps1') -Import
+}
+
+# --- Sysmon ------------------------------------------------------------------
+if (-not $SkipSysmon) {
+    Step 'Sysmon (SwiftOnSecurity config, needs admin)'
+    try { & (Join-Path $PSScriptRoot 'install-sysmon.ps1') }
+    catch { Write-Warning "Sysmon step failed: $($_.Exception.Message). Re-run scripts\install-sysmon.ps1 later." }
 }
 
 # --- Python ------------------------------------------------------------------
