@@ -1,0 +1,97 @@
+{
+  "workbench.editorAssociations": {
+    "*.dqy": "default"
+  },
+  "files.associations": {
+    "*.dqy": "sql"
+  },
+
+  // Editor
+  "editor.minimap.enabled": false,
+  "editor.wordWrap": "on",
+  "editor.fontFamily": "Rec Mono Duotone, monospace",
+  "editor.fontWeight": "300",
+  "editor.fontLigatures": true,
+  "editor.cursorBlinking": "phase",
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.guides.bracketPairs": "active",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.bracketPairColorization.independentColorPoolPerBracketType": true,
+  "editor.linkedEditing": true,
+  "editor.inlineSuggest.enabled": true,
+  "editor.formatOnSave": true,
+  "editor.formatOnType": true,
+  "editor.formatOnPaste": true,
+  "editor.mouseWheelZoom": true,
+  "editor.accessibilitySupport": "off",
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "name": "italic font",
+        "scope": ["comment", "storage", "entity.other"],
+        "settings": {
+          "fontStyle": "italic"
+        }
+      }
+    ]
+  },
+  "diffEditor.codeLens": true,
+
+  // Workbench
+  "workbench.colorTheme": "Visual Studio Dark - C++",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.colorCustomizations": {},
+  "workbench.startupEditor": "none",
+  "workbench.editor.empty.hint": "hidden",
+  "window.menuBarVisibility": "compact",
+
+  // Files / explorer
+  "files.autoSave": "afterDelay",
+  "explorer.confirmDragAndDrop": false,
+  "explorer.confirmDelete": false,
+  "security.workspace.trust.untrustedFiles": "open",
+
+  // Terminal
+  "terminal.integrated.fontFamily": "MesloLGS NF, monospace",
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.enableMultiLinePasteWarning": "never",
+  "terminal.integrated.enablePersistentSessions": false,
+  "terminal.integrated.mouseWheelScrollSensitivity": 3,
+  "terminal.integrated.gpuAcceleration": "off",
+
+  // Git
+  "git.confirmSync": false,
+  "git.autofetch": true,
+
+  // Formatters
+  "prettier.useEditorConfig": false,
+  "prettier.requireConfig": true,
+  "prettier.trailingComma": "all",
+  "[html]": { "editor.defaultFormatter": "vscode.html-language-features" },
+  "[vue]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[javascript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[typescript]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[typescriptreact]": { "editor.defaultFormatter": "vscode.typescript-language-features" },
+  "[json]": { "editor.defaultFormatter": "vscode.json-language-features" },
+  "[jsonc]": { "editor.defaultFormatter": "esbenp.prettier-vscode" },
+  "[python]": { "editor.defaultFormatter": "ms-python.black-formatter" },
+
+  // Language-specific
+  "python.analysis.typeCheckingMode": "standard",
+  "php.validate.enable": false,
+  "intelephense.diagnostics.undefinedFunctions": false,
+  "intelephense.diagnostics.undefinedTypes": false,
+  "powershell.startAutomatically": true,
+  "[powershell]": {
+    "debug.saveBeforeStart": "nonUntitledEditorsInActiveGroup",
+    "editor.semanticHighlighting.enabled": false,
+    "editor.wordSeparators": "`~!@#$%^&*()=+[{]}\\|;:'\",.<>/?"
+  },
+
+  // Extensions
+  "liveServer.settings.donotShowInfoMsg": true,
+  "liveServer.settings.donotVerifyTags": true,
+  "redhat.telemetry.enabled": true,
+  "vscode-edge-devtools.webhintInstallNotification": true,
+  "claudeCode.preferredLocation": "panel"
+}

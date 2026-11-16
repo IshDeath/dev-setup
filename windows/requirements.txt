@@ -1,0 +1,16 @@
+anthropic
+beautifulsoup4
+git-filter-repo
+html2text
+lxml
+matplotlib
+openpyxl
+pdfplumber
+python-dotenv
+tqdm
+
+# Databases
+PyMySQL
+pyodbc        # IBM i Access ODBC (invoice-trace)
+JayDeBeApi    # JTOpen JDBC (query_as400.py); needs Java
+JPype1

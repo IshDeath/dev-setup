@@ -1,37 +1,25 @@
 # dev-setup
 
-My reproducible developer setup for Windows + **Debian (trixie) on WSL 2**:
-Docker Engine, PHP 8.4, zsh + Oh My Zsh + Powerlevel10k (with my saved prompt config),
-SSH keys for GitHub, and optionally Neovim/LazyVim.
+My reproducible developer environment for Windows 11 plus **Debian (trixie) on WSL 2**.
 
-Started from [kmtiredevelopment/setup-developer](https://github.com/kmtiredevelopment/setup-developer).
-These are the steps that actually worked on Debian 13. What I changed:
-
-| Original guide | What actually works on Debian trixie |
-|---|---|
-| Docker GPG key from `.../linux/ubuntu/gpg` saved to `/usr/share/keyrings/docker-archive-keyring.gpg`, while the Debian repo line pointed at `/etc/apt/keyrings/docker.asc` | Download `.../linux/debian/gpg` to `/etc/apt/keyrings/docker.asc` so the key path matches the repo line |
-| `apt install software-properties-common apt-transport-https` | Debian 13 doesn't have `software-properties-common`, and you don't need it. Install `ca-certificates curl` only |
-| `php8.4-redis` | That package doesn't exist. Use `php-redis` |
-| PHP install before `apt update` | Run `apt update && apt upgrade` first |
-| `sudo groupadd docker` | The docker package creates the group itself |
-| Log out and back in to pick up the docker group | Run `wsl --shutdown` from PowerShell, then reopen |
-| RSA key via plain `ssh-keygen` | A separate ed25519 key for GitHub, an `~/.ssh/config` entry, and `keychain` so you type the passphrase once per boot |
-| Copy fonts to `~/.fonts` in WSL | Not needed. Windows Terminal draws the text, so the fonts only have to be installed on Windows |
-| `p10k configure` on every machine | My config is saved in `dotfiles/.p10k.zsh` and gets symlinked in |
-| — | Transient prompt is turned off in my p10k config |
-| — | Neovim from apt is too old for LazyVim. Use the release tarball in `/opt` |
+- **Windows:** apps via winget, VS Code config and extensions, Windows Terminal settings, MesloLGS NF fonts, Python packages, git defaults
+- **Debian WSL:** Docker Engine, PHP 8.4, zsh + Oh My Zsh + Powerlevel10k (with my saved prompt config), SSH keys for GitHub, and optionally Neovim/LazyVim
 
 ---
 
 ## Quick start (new machine)
 
 ```powershell
-# 1. PowerShell (admin): install WSL + Debian, then reboot
+# 1. Admin PowerShell: install WSL + Debian, then reboot
 wsl --install --web-download -d Debian
+```
 
-# 2. PowerShell (normal user): fonts, then set the Windows Terminal font (see Fonts section)
+```powershell
+# 2. Normal PowerShell: get the repo (winget ships with Windows 11) and set up the Windows side
+winget install -e --id Git.Git
+# open a new terminal so git is on PATH
 git clone https://github.com/IshDeath/dev-setup.git $HOME\dev-setup
-powershell -ExecutionPolicy Bypass -File $HOME\dev-setup\scripts\install-fonts.ps1
+powershell -ExecutionPolicy Bypass -File $HOME\dev-setup\scripts\install-windows.ps1          # add -Work on a work machine
 ```
 
 ```bash
@@ -46,17 +34,95 @@ git clone https://github.com/IshDeath/dev-setup.git ~/dev-setup
 wsl --shutdown
 ```
 
-5. Reopen Debian, then do [SSH keys](#ssh-keys) and [git identity](#git-identity) by hand.
+5. Reopen Debian. Do [SSH keys](#ssh-keys) by hand, then sign in to `gh auth login` and `claude`.
 6. Check it: `docker run hello-world`, `ssh -T git@github.com`.
 
-> If the repo is private, the HTTPS clones in steps 2 and 3 will ask you to sign in.
-> Use a GitHub personal access token as the password, or download the repo as a zip.
-
-The installer is safe to re-run. It skips anything already installed and backs up an existing `~/.zshrc` or `~/.p10k.zsh` before it symlinks the repo's copies.
+Both installers are safe to re-run. Already-installed items are skipped, and existing config files are backed up (`*.bak.<timestamp>`) before they're replaced.
 
 ---
 
-## 1. Install WSL
+## Windows
+
+### What `install-windows.ps1` installs
+
+| Group | Apps (winget IDs) |
+|---|---|
+| Shell / terminal | `Microsoft.WindowsTerminal`, `Microsoft.PowerShell`, `Microsoft.WSL` |
+| Source control | `Git.Git`, `GitHub.cli` |
+| Editors / AI | `Microsoft.VisualStudioCode`, `Anthropic.ClaudeCode`, `Anthropic.Claude` |
+| Languages | `Python.Python.3.12`, `OpenJS.NodeJS.LTS`, `EclipseAdoptium.Temurin.21.JDK`, `PHP.PHP.8.4` |
+| CLI tools | `BurntSushi.ripgrep.MSVC` |
+| Database | `DBeaver.DBeaver.Community` |
+| Remote access | `PuTTY.PuTTY`, `WinSCP.WinSCP`, `mRemoteNG.mRemoteNG` |
+| Network | `Insecure.Nmap`, `WiresharkFoundation.Wireshark` |
+| Utilities | `Microsoft.PowerToys` |
+| `-Work` only | `Oracle.JavaRuntimeEnvironment` (Java 8), `ApacheFriends.Xampp.8.2`, PS modules `ExchangeOnlineManagement` + `Microsoft.Graph.Authentication`, plus everything in [Work laptop: AS400 / DBeaver](#work-laptop-as400--dbeaver) |
+
+The scripts run under the built-in Windows PowerShell 5.1 (`powershell -File ...`), so they work on a fresh machine before PowerShell 7 is installed. They install PowerShell 7 (`pwsh`) as part of the core apps.
+
+It also:
+
+- installs the fonts in `fonts/` for your user (`install-fonts.ps1`)
+- copies `vscode/settings.json` and `vscode/keybindings.json` to `%APPDATA%\Code\User\`
+- installs every extension listed in `vscode/extensions.txt`
+- copies `windows/terminal-settings.json` into Windows Terminal (Ottosson color scheme; MesloLGS NF on the Debian profile)
+- runs `pip install --user -r windows/requirements.txt` for Python 3.12
+- sets git `core.editor "code --wait"`, `init.defaultBranch main`, and `pull.rebase false`, and asks for `user.name` and `user.email` if they aren't set
+
+Flags: `-Work`, `-SkipApps` (config only), `-SkipConfig` (don't touch VS Code or Terminal settings).
+
+### Manual installs (not on winget)
+
+- **Xshell 8** (NetSarang)
+- **Work:** IBM Data Server Client
+- **Work, PHP on Windows:** the `php_ibm_db2.dll` extension. Copy it into PHP's `ext\` folder and add `extension=php_ibm_db2.dll` to `php.ini`. It needs the IBM Data Server Client.
+
+### Work laptop: AS400 / DBeaver
+
+`scripts/install-work.ps1` runs as part of `install-windows.ps1 -Work`. You can also run it on its own. It sets up:
+
+| Piece | How |
+|---|---|
+| **JTOpen JDBC jar** (`jt400-21.0.6.jar`) | Downloads it from Maven Central into `C:\ITFiles\JTOpen`, checks the SHA1, and sets the user env var `AS400_JAR` (`query_as400.py` reads it) |
+| **IBM i Access ODBC Driver** | Installs it silently from `Image64a\cwbinstall.msi` inside the IBM zip you pass with `-OdbcZip` |
+| **IBM i Access Client Solutions** | Runs `install_acs_64_allusers.js` from the ACS zip you pass with `-AcsZip` (uses Java from Temurin 21) |
+| **DBeaver connections** | Fills in `work/dbeaver/data-sources.template.json` (AS400 + MySQL) with the hosts you enter, and writes it to DBeaver's workspace. No passwords are stored; DBeaver asks on first connect and downloads its own drivers |
+| **Python** | `pyodbc`, `JayDeBeApi` and `JPype1` are in `windows/requirements.txt` |
+
+The IBM installers are licensed and need an IBM ID, so they are **not** in this repo. Download them from
+<https://www.ibm.com/support/pages/ibm-i-access-client-solutions> ("IBM i Access Client Solutions" and
+"IBM i Access - Windows Application Package"), then:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\install-work.ps1 `
+  -OdbcZip "$HOME\Downloads\IBMiAccess_v1r1_WindowsAP_English.zip" `
+  -AcsZip  "$HOME\Downloads\<ACS zip>.zip" `
+  -As400Host <ip> -MysqlHost <ip> -MysqlDb <db>
+```
+
+Anything you leave out is skipped or prompted for. Steps that are already done (driver installed, ACS present) are skipped. Close DBeaver before running it.
+
+Hosts are placeholders in the template (`{{AS400_HOST}}` etc.). Don't commit real internal IPs here, because this repo is public.
+
+### Keeping the Windows config in sync
+
+When you change settings on a machine, copy them back into the repo and commit:
+
+```powershell
+cd $HOME\dev-setup
+code --list-extensions | Set-Content vscode\extensions.txt
+Copy-Item $env:APPDATA\Code\User\settings.json, $env:APPDATA\Code\User\keybindings.json vscode\
+Copy-Item "$env:LOCALAPPDATA\Packages\Microsoft.WindowsTerminal_*\LocalState\settings.json" windows\terminal-settings.json
+git diff        # check that no machine-specific paths, IPs or hostnames crept in
+```
+
+Keep machine- or work-specific VS Code settings (Code for IBM i connections, UNC hosts, Remote-SSH hosts) out of the repo's `settings.json`.
+
+---
+
+## Debian WSL
+
+### 1. Install WSL
 
 Requires Windows 10 2004+ (build 19041+) or Windows 11.
 
@@ -75,7 +141,7 @@ Check the version with `wsl -v`. It should say WSL 2.x. If not, run `wsl --set-d
 
 **From here on, use a normal (non-admin) terminal.** When Debian first launches, it asks you to create a UNIX username and password.
 
-Debian trixie on WSL ships `/etc/wsl.conf` with `systemd=true`. Docker needs systemd, so check it's there:
+Docker needs systemd. Debian trixie on WSL enables it in `/etc/wsl.conf`, so check it's there:
 
 ```bash
 cat /etc/wsl.conf
@@ -83,16 +149,16 @@ cat /etc/wsl.conf
 # systemd=true
 ```
 
-## 2. Base packages
+### 2. Base packages
 
 ```bash
 sudo apt update && sudo apt upgrade -y
 sudo apt install -y ca-certificates curl git zsh keychain vim htop build-essential ripgrep fd-find unzip
 ```
 
-### PHP 8.4
+#### PHP 8.4
 
-Debian 13 ships PHP 8.4, so you don't need an extra repo:
+Debian 13 ships PHP 8.4, so you don't need an extra repo. The redis extension is `php-redis`; there is no `php8.4-redis`.
 
 ```bash
 sudo apt install -y php8.4-cli php8.4-common php8.4-mysql php8.4-pgsql php8.4-odbc php8.4-curl \
@@ -101,7 +167,7 @@ sudo apt install -y php8.4-cli php8.4-common php8.4-mysql php8.4-pgsql php8.4-od
 php -v
 ```
 
-## 3. Docker Engine
+### 3. Docker Engine
 
 This follows Docker's [official Debian instructions](https://docs.docker.com/engine/install/debian/):
 
@@ -128,11 +194,11 @@ Private registry (work):
 docker login registry.kmdevlab.com
 ```
 
-## SSH keys
+### SSH keys
 
 Use a **separate key for each machine and each purpose**. Never commit private keys to this repo. `.gitignore` blocks `id_*` as a backstop.
 
-### GitHub key
+#### GitHub key
 
 ```bash
 mkdir -p ~/.ssh && chmod 700 ~/.ssh
@@ -170,7 +236,7 @@ Once the key works, switch this repo's remote to SSH:
 git -C ~/dev-setup remote set-url origin git@github.com:IshDeath/dev-setup.git
 ```
 
-### Two GitHub accounts on one machine (work + personal)
+#### Two GitHub accounts on one machine (work + personal)
 
 Give the second account its own key and host alias:
 
@@ -184,7 +250,9 @@ Host github-personal
 
 Then clone with `git clone git@github-personal:IshDeath/dev-setup.git`.
 
-### Reusing existing keys from Windows (work machine)
+On Windows, HTTPS remotes in the form `https://IshDeath@github.com/IshDeath/<repo>.git` make Git Credential Manager use the personal login. `gh auth switch --user IshDeath` (or `--user IDeathe`) switches the gh CLI account.
+
+#### Reusing existing keys from Windows (work machine)
 
 If the Windows side already has server keys and an ssh config:
 
@@ -199,14 +267,14 @@ chmod 644 ~/.ssh/*.pub
 
 Linux ssh refuses to use keys whose permissions are too open. That's why the `chmod` lines are there.
 
-### Copying a key to a server
+#### Copying a key to a server
 
 ```bash
 ssh-copy-id -i ~/.ssh/<key>.pub user@host   # needs password SSH access the first time
 ssh user@host                               # should now log in with the key
 ```
 
-## Git identity
+### Git identity (WSL)
 
 ```bash
 git config --global user.name  "Your Name"
@@ -215,7 +283,7 @@ git config --global init.defaultBranch main
 git config --global pull.rebase false
 ```
 
-## 4. zsh, Oh My Zsh, Powerlevel10k
+### 4. zsh, Oh My Zsh, Powerlevel10k
 
 `scripts/install.sh` does all of this. Here are the manual steps:
 
@@ -230,15 +298,11 @@ ln -sfn ~/dev-setup/dotfiles/.p10k.zsh ~/.p10k.zsh
 exec zsh
 ```
 
-### Fonts
+#### Fonts
 
-The MesloLGS NF fonts (from [powerlevel10k](https://github.com/romkatv/powerlevel10k#fonts)) are in `fonts/`.
+The MesloLGS NF fonts (from [powerlevel10k](https://github.com/romkatv/powerlevel10k#fonts)) are in `fonts/`. Install them on **Windows**, not inside WSL, because the terminal draws the text on the Windows side. `install-windows.ps1` installs them and sets the Terminal font. To do it by hand, double-click each `.ttf`, then in Windows Terminal go to Settings → Debian profile → Appearance → Font face and choose **MesloLGS NF**.
 
-- **Windows:** run `scripts\install-fonts.ps1`, or double-click each `.ttf` and click Install.
-- **Windows Terminal:** go to Settings → Defaults (or the Debian profile) → Appearance → Font face, choose **MesloLGS NF**, and save.
-- **Inside WSL:** nothing to do. The terminal draws the text on the Windows side.
-
-### My prompt config
+#### My prompt config
 
 `dotfiles/.p10k.zsh` was made with the wizard using: nerdfont-v3 + powerline, small icons, classic, unicode, dark,
 12h time, angled separators, round heads, flat tails, 1 line, sparse, many icons, concise, instant prompt verbose.
@@ -254,7 +318,7 @@ cd ~/dev-setup && git commit -am "Update p10k config" && git push
 
 Put machine-specific shell settings (work aliases, env vars, tokens) in `~/.zshrc.local`. The tracked `.zshrc` sources it, and git ignores it.
 
-## 5. Optional: Neovim + LazyVim
+### 5. Optional: Neovim + LazyVim
 
 The Neovim in apt is too old for LazyVim. Install the latest release into `/opt` instead (`install.sh --with-nvim` does this):
 
@@ -270,12 +334,22 @@ rm -rf ~/.config/nvim/.git
 
 `.zshrc` already adds `/opt/nvim-linux-x86_64/bin` to `PATH`. LazyVim also wants `build-essential`, `ripgrep` and `fd-find`, which the base packages step installs.
 
+---
+
 ## Repo layout
 
 ```
-dotfiles/.zshrc          zsh config (symlinked to ~/.zshrc)
-dotfiles/.p10k.zsh       Powerlevel10k prompt config (symlinked to ~/.p10k.zsh)
-fonts/                   MesloLGS NF Regular/Bold/Italic/Bold Italic
-scripts/install.sh       Debian WSL bootstrap (re-runnable)
-scripts/install-fonts.ps1  per-user Windows font install
+scripts/install-windows.ps1   Windows bootstrap: winget apps, fonts, VS Code, Terminal, Python, git
+scripts/install-fonts.ps1     per-user font install (called by install-windows.ps1)
+scripts/install-work.ps1      work extras: JTOpen jar, IBM i Access ODBC + ACS, DBeaver connections
+work/dbeaver/                 DBeaver connection template (placeholder hosts)
+scripts/install.sh            Debian WSL bootstrap
+vscode/settings.json          VS Code user settings (machine-specific entries removed)
+vscode/keybindings.json       VS Code keybindings
+vscode/extensions.txt         VS Code extensions, one ID per line
+windows/terminal-settings.json  Windows Terminal settings
+windows/requirements.txt      global Python packages
+dotfiles/.zshrc               zsh config (symlinked to ~/.zshrc)
+dotfiles/.p10k.zsh            Powerlevel10k prompt config (symlinked to ~/.p10k.zsh)
+fonts/                        MesloLGS NF Regular/Bold/Italic/Bold Italic
 ```
