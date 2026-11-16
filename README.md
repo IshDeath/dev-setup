@@ -34,7 +34,7 @@ git clone https://github.com/IshDeath/dev-setup.git ~/dev-setup
 wsl --shutdown
 ```
 
-5. Reopen Debian. Do [SSH keys](#ssh-keys) by hand, then sign in to `gh auth login` and `claude`.
+5. Reopen Debian. Do [SSH keys](#ssh-keys) by hand, then sign in to `gh auth login` and `claude`. If you use Claude Code inside WSL too, see [Claude Code config](#claude-code-config).
 6. Check it: `docker run hello-world`, `ssh -T git@github.com`.
 
 Both installers are safe to re-run. Already-installed items are skipped, and existing config files are backed up (`*.bak.<timestamp>`) before they're replaced.
@@ -69,7 +69,27 @@ It also:
 - runs `pip install --user -r windows/requirements.txt` for Python 3.12
 - sets git `core.editor "code --wait"`, `init.defaultBranch main`, and `pull.rebase false`, and asks for `user.name` and `user.email` if they aren't set
 
-Flags: `-Work`, `-SkipApps` (config only), `-SkipConfig` (don't touch VS Code or Terminal settings).
+- clones the private repos `IshDeath/claude-config` and `IshDeath/maddenco-docs` into `$HOME` and runs `claude-config\install.ps1` (see [Claude Code config](#claude-code-config))
+
+Flags: `-Work`, `-SkipApps` (config only), `-SkipConfig` (don't touch VS Code or Terminal settings), `-SkipClaudeConfig`.
+
+### Claude Code config
+
+My skills, OneNote scripts, hooks, settings and global `CLAUDE.md` live in the **private** repo [IshDeath/claude-config](https://github.com/IshDeath/claude-config). The MaddenCo docs live in the private repo [IshDeath/maddenco-docs](https://github.com/IshDeath/maddenco-docs). On Windows, `install-windows.ps1` clones both and runs the installer. The first clone asks you to sign in to GitHub as IshDeath.
+
+After that, on each machine:
+
+- run `powershell.exe -NoProfile -File $HOME\.claude\scripts\onenote\list_sections.ps1` and set `ONENOTE_DOC_SECTION_ID` (see the claude-config README)
+- fill in `$HOME\maddenco-docs\.env` with the AS400 host and read-only credentials if you need `query_as400.py`
+
+Inside WSL, once SSH keys are set up:
+
+```bash
+curl -fsSL https://claude.ai/install.sh | bash        # Claude Code
+git clone git@github.com:IshDeath/claude-config.git ~/claude-config
+git clone git@github.com:IshDeath/maddenco-docs.git ~/maddenco-docs
+~/claude-config/install.sh
+```
 
 ### Manual installs (not on winget)
 

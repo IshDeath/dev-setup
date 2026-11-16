@@ -21,11 +21,15 @@
 
 .PARAMETER SkipConfig
   Skip copying VS Code / Windows Terminal config.
+
+.PARAMETER SkipClaudeConfig
+  Skip cloning the private claude-config + maddenco-docs repos and installing the Claude Code config.
 #>
 param(
     [switch]$Work,
     [switch]$SkipApps,
-    [switch]$SkipConfig
+    [switch]$SkipConfig,
+    [switch]$SkipClaudeConfig
 )
 
 $ErrorActionPreference = 'Stop'
@@ -152,6 +156,25 @@ if (Get-Command py -ErrorAction SilentlyContinue) {
     py -3.12 -m pip install --user -r (Join-Path $Repo 'windows\requirements.txt')
 } else {
     Write-Warning 'py launcher not on PATH yet. Open a new terminal and re-run with -SkipApps.'
+}
+
+# --- Claude Code config (private repos) --------------------------------------
+if (-not $SkipClaudeConfig) {
+    Step 'Claude Code config (IshDeath/claude-config + maddenco-docs, private)'
+    if (Get-Command git -ErrorAction SilentlyContinue) {
+        # The IshDeath@ prefix makes Git Credential Manager use the personal GitHub login
+        # (a browser sign-in prompt the first time).
+        foreach ($name in 'claude-config', 'maddenco-docs') {
+            $dest = Join-Path $HOME $name
+            if (Test-Path (Join-Path $dest '.git')) { Write-Host "  [skip] $dest exists"; continue }
+            git clone "https://IshDeath@github.com/IshDeath/$name.git" $dest
+            if ($LASTEXITCODE -ne 0) { Write-Warning "clone of $name failed; re-run later with -SkipApps" }
+        }
+        $cc = Join-Path $HOME 'claude-config\install.ps1'
+        if (Test-Path $cc) { & $cc -MaddenCoDocs (Join-Path $HOME 'maddenco-docs') }
+    } else {
+        Write-Warning 'git not on PATH yet. Open a new terminal and re-run with -SkipApps.'
+    }
 }
 
 # --- Work extras -------------------------------------------------------------

@@ -25,7 +25,8 @@ sudo apt update
 sudo apt upgrade -y
 sudo apt install -y \
   ca-certificates curl git zsh keychain vim htop build-essential \
-  ripgrep fd-find unzip fontconfig
+  ripgrep fd-find unzip fontconfig \
+  nodejs python-is-python3   # node + python for Claude Code hooks
 
 if [[ $SKIP_PHP -eq 0 ]]; then
   step "PHP 8.4"
